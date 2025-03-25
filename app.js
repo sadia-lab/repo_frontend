@@ -1,12 +1,9 @@
-// ===== UPDATED APP.JS FOR ONLINE USE (Render + Vercel Compatible) =====
-
 const API_BASE = "https://repo-backend-epjh.onrender.com";
 
 let lastHighlighted = null;
 
-// Highlight selected text
-const highlightBtn = document.getElementById("highlight-btn");
-highlightBtn.addEventListener("click", () => {
+// ===== Highlight selected text =====
+document.getElementById("highlight-btn").addEventListener("click", () => {
   const selection = window.getSelection();
   if (selection.rangeCount > 0 && selection.toString().trim() !== "") {
     const range = selection.getRangeAt(0);
@@ -21,21 +18,20 @@ highlightBtn.addEventListener("click", () => {
   }
 });
 
-// Show URL input popup
+// ===== Show link input popup =====
 let activeHighlight = null;
 document.getElementById("link-btn").addEventListener("click", () => {
   if (!lastHighlighted) {
-    alert("⚠️ Please highlight an entity first using the Highlight button!");
+    alert("⚠️ Please highlight text first!");
     return;
   }
   activeHighlight = lastHighlighted;
   document.getElementById("link-input").style.display = "block";
 });
 
-// Insert Link
-const insertLink = document.getElementById("insert-link");
-insertLink.addEventListener("click", () => {
-  const url = document.getElementById("link-url").value;
+// ===== Insert Link =====
+document.getElementById("insert-link").addEventListener("click", () => {
+  const url = document.getElementById("link-url").value.trim();
   if (url && activeHighlight) {
     const link = document.createElement("a");
     link.href = url;
@@ -55,7 +51,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
   activeHighlight = null;
 });
 
-// Save Button functionality
+// ===== Save POI =====
 document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
 
@@ -85,7 +81,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
       highlightedData: combinedEntities,
     }),
   })
-    .then((response) => response.json())
+    .then((res) => res.json())
     .then(() => {
       alert("✅ POI saved successfully!");
       document.getElementById("poi-description-area").innerHTML = "";
@@ -97,8 +93,8 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
 });
 
-// Fetch all saved POIs
-document.getElementById("fetch-btn").addEventListener("click", function () {
+// ===== Fetch All POIs =====
+document.getElementById("fetch-btn").addEventListener("click", () => {
   fetch(`${API_BASE}/get-pois`)
     .then((res) => {
       if (!res.ok) throw new Error("Fetch failed");
@@ -139,7 +135,7 @@ document.getElementById("fetch-btn").addEventListener("click", function () {
     });
 });
 
-// Clear all POIs
+// ===== Clear All POIs =====
 document.getElementById("clear-pois-btn").addEventListener("click", () => {
   if (confirm("Are you sure you want to delete ALL saved POIs?")) {
     fetch(`${API_BASE}/clear-pois`, {
@@ -148,8 +144,7 @@ document.getElementById("clear-pois-btn").addEventListener("click", () => {
       .then((res) => res.json())
       .then(() => {
         alert("🗑️ All POIs have been deleted.");
-        const resultArea = document.getElementById("output-area");
-        resultArea.innerHTML = "";
+        document.getElementById("output-area").innerHTML = "";
       })
       .catch((err) => {
         console.error("Clear error:", err);
