@@ -1,5 +1,7 @@
 // ===== UPDATED APP.JS FOR ONLINE USE (Render + Vercel Compatible) =====
 
+const API_BASE = "https://repo-backend-epjh.onrender.com";
+
 let lastHighlighted = null;
 
 // Highlight selected text
@@ -55,14 +57,11 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 
 // Save Button functionality
 document.getElementById("save-btn").addEventListener("click", () => {
-  const poiDescription = document.getElementById("poi-description-area").innerText.trim();
+  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
 
   const combinedEntities = [];
   const parser = new DOMParser();
-  const doc = parser.parseFromString(
-    document.getElementById("poi-description-area").innerHTML,
-    "text/html"
-  );
+  const doc = parser.parseFromString(poiDescription, "text/html");
   const highlightedElements = doc.querySelectorAll(".highlighted");
 
   highlightedElements.forEach((element) => {
@@ -73,7 +72,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
   });
 
-  fetch("https://repo-backend-epjh.onrender.com/save-poi", {
+  fetch(`${API_BASE}/save-poi`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -92,7 +91,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
 
 // Fetch all saved POIs
 document.getElementById("fetch-btn").addEventListener("click", function () {
-  fetch("https://repo-backend-epjh.onrender.com/get-pois")
+  fetch(`${API_BASE}/get-pois`)
     .then((res) => {
       if (!res.ok) {
         throw new Error("Fetch failed");
@@ -132,4 +131,23 @@ document.getElementById("fetch-btn").addEventListener("click", function () {
       resultArea.innerHTML = "<p style='color: red;'>Error fetching POIs!</p>";
       console.error("Fetch error:", err);
     });
+});
+
+// Clear all POIs
+document.getElementById("clear-pois-btn").addEventListener("click", () => {
+  if (confirm("Are you sure you want to delete ALL saved POIs?")) {
+    fetch(`${API_BASE}/clear-pois`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("🗑️ All POIs have been deleted.");
+        const resultArea = document.getElementById("output-area");
+        resultArea.innerHTML = "";
+      })
+      .catch((err) => {
+        console.error("Clear error:", err);
+        alert("❌ Failed to delete POIs.");
+      });
+  }
 });
