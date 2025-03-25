@@ -1,0 +1,58 @@
+/* General body styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+    background-color: #f4f4f4;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    font-size: 32px;
+}
+
+.toolbar {
+    text-align: center;
+    margin: 10px 0;
+}
+
+button {
+    padding: 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+.highlighted {
+    background-color: yellow;
+    font-weight: bold;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+
+.poi-description {
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+.poi-description:focus {
+    outline: 2px solid #4CAF50;
+}
+
+
+#link-input {
+    margin-top: 10px;
+    text-align: center;
+}
+
+#link-url {
+    padding: 5px;
+    width: 300px;
+}
+
+#insert-link, #cancel-link {
+    margin-top: 10px;
+}
