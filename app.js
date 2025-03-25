@@ -1,144 +1,135 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const saveBtn = document.getElementById("save-btn");
-    const highlightBtn = document.getElementById("highlight-btn");
-    const boldBtn = document.getElementById("bold-btn");
-    const italicBtn = document.getElementById("italic-btn");
-    const underlineBtn = document.getElementById("underline-btn");
-    const colorBtn = document.getElementById("color-btn");
-    const linkBtn = document.getElementById("link-btn");
-    const linkInput = document.getElementById("link-input");
-    const insertLinkBtn = document.getElementById("insert-link");
-    const cancelLinkBtn = document.getElementById("cancel-link");
-    const descriptionArea = document.getElementById("poi-description-area");
-  
-    // ✅ Highlight text only (no link)
-    highlightBtn.addEventListener("click", () => {
-      document.execCommand("backColor", false, "yellow");
+// ===== UPDATED APP.JS FOR ONLINE USE (Render + Vercel Compatible) =====
+
+let lastHighlighted = null;
+
+// Highlight selected text
+const highlightBtn = document.getElementById("highlight-btn");
+highlightBtn.addEventListener("click", () => {
+  const selection = window.getSelection();
+  if (selection.rangeCount > 0 && selection.toString().trim() !== "") {
+    const range = selection.getRangeAt(0);
+    const span = document.createElement("span");
+    span.classList.add("highlighted");
+    span.style.backgroundColor = "yellow";
+    span.textContent = selection.toString();
+    range.deleteContents();
+    range.insertNode(span);
+    selection.removeAllRanges();
+    lastHighlighted = span;
+  }
+});
+
+// Show URL input popup
+let activeHighlight = null;
+document.getElementById("link-btn").addEventListener("click", () => {
+  if (!lastHighlighted) {
+    alert("⚠️ Please highlight an entity first using the Highlight button!");
+    return;
+  }
+  activeHighlight = lastHighlighted;
+  document.getElementById("link-input").style.display = "block";
+});
+
+// Insert Link
+const insertLink = document.getElementById("insert-link");
+insertLink.addEventListener("click", () => {
+  const url = document.getElementById("link-url").value;
+  if (url && activeHighlight) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.textContent = activeHighlight.textContent;
+    activeHighlight.innerHTML = "";
+    activeHighlight.appendChild(link);
+  }
+  document.getElementById("link-input").style.display = "none";
+  document.getElementById("link-url").value = "";
+  activeHighlight = null;
+});
+
+document.getElementById("cancel-link").addEventListener("click", () => {
+  document.getElementById("link-input").style.display = "none";
+  document.getElementById("link-url").value = "";
+  activeHighlight = null;
+});
+
+// Save Button functionality
+document.getElementById("save-btn").addEventListener("click", () => {
+  const poiDescription = document.getElementById("poi-description-area").innerText.trim();
+
+  const combinedEntities = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(
+    document.getElementById("poi-description-area").innerHTML,
+    "text/html"
+  );
+  const highlightedElements = doc.querySelectorAll(".highlighted");
+
+  highlightedElements.forEach((element) => {
+    const link = element.querySelector("a");
+    combinedEntities.push({
+      entity: link ? link.textContent.trim() : element.textContent.trim(),
+      url: link ? link.href : null,
     });
-  
-    // ✅ Text formatting
-    boldBtn.addEventListener("click", () => document.execCommand("bold"));
-    italicBtn.addEventListener("click", () => document.execCommand("italic"));
-    underlineBtn.addEventListener("click", () => document.execCommand("underline"));
-    colorBtn.addEventListener("click", () => {
-      const color = prompt("Enter a text color (e.g. red or #ff0000):");
-      if (color) document.execCommand("foreColor", false, color);
-    });
-  
-    // ✅ Manual Insert Link
-    linkBtn.addEventListener("click", () => {
-      linkInput.style.display = "block";
-    });
-  
-    insertLinkBtn.addEventListener("click", () => {
-      const url = document.getElementById("link-url").value.trim();
-      const selection = window.getSelection();
-  
-      if (!url || !selection.rangeCount) return;
-  
-      const range = selection.getRangeAt(0);
-      const selectedText = range.toString().trim();
-  
-      if (selectedText) {
-        const a = document.createElement("a");
-        a.href = url;
-        a.target = "_blank";
-        a.classList.add("custom-link"); // only user-added links get tracked
-        a.textContent = selectedText;
-  
-        range.deleteContents();
-        range.insertNode(a);
-      }
-  
-      linkInput.style.display = "none";
-      document.getElementById("link-url").value = "";
-    });
-  
-    cancelLinkBtn.addEventListener("click", () => {
-      linkInput.style.display = "none";
-      document.getElementById("link-url").value = "";
-    });
-  
-    // ✅ Save POI
-    saveBtn.addEventListener("click", () => {
-      const description = descriptionArea.innerHTML;
-      const highlightedData = [];
-  
-      const temp = document.createElement("div");
-      temp.innerHTML = description;
-  
-      const links = temp.querySelectorAll("a.custom-link");
-      links.forEach((link) => {
-        const entity = link.textContent?.trim();
-        const url = link.getAttribute("href")?.trim();
-        if (entity && url) {
-          highlightedData.push({ entity, url });
-        }
-      });
-  
-      console.log("📦 Sending to backend:", { description, highlightedData });
-  
-      fetch("https://repo-backend-epjh.onrender.com/save-poi", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description, highlightedData }),
-      })
-        .then((res) => res.json())
-        .then(() => alert("✅ POI saved successfully!"))
-        .catch((err) => {
-          console.error("Save error:", err);
-          alert("❌ Failed to save POI.");
-        });
-    });
-  
-    // ✅ Fetch POIs
-    const fetchBtn = document.getElementById("fetch-btn");
-    if (fetchBtn) {
-      fetchBtn.addEventListener("click", () => {
-        fetch("https://repo-backend-epjh.onrender.com/get-pois")
-          .then((res) => res.json())
-          .then((data) => {
-            const output = document.getElementById("output-area");
-            output.innerHTML = "";
-  
-            if (!data.length) {
-              output.innerHTML = "<p>No POIs found.</p>";
-              return;
-            }
-  
-            data.forEach((poi) => {
-              const div = document.createElement("div");
-              div.innerHTML = `<p><strong>Description:</strong> ${poi.description}</p>`;
-              output.appendChild(div);
-            });
-          })
-          .catch((err) => {
-            console.error("Fetch error:", err);
-            alert("❌ Could not load POIs.");
-          });
-      });
-    }
-  
-    // ✅ Clear all POIs
-    const clearBtn = document.getElementById("clear-pois-btn");
-    if (clearBtn) {
-      clearBtn.addEventListener("click", () => {
-        if (confirm("Are you sure you want to delete ALL saved POIs?")) {
-          fetch("https://repo-backend-epjh.onrender.com/clear-pois", {
-            method: "DELETE",
-          })
-            .then((res) => res.json())
-            .then(() => {
-              alert("🗑️ All POIs have been deleted.");
-              const output = document.getElementById("output-area");
-              if (output) output.innerHTML = "";
-            })
-            .catch((err) => {
-              console.error("Clear error:", err);
-              alert("❌ Failed to delete POIs.");
-            });
-        }
-      });
-    }
   });
-  
+
+  fetch("https://repo-backend-epjh.onrender.com/save-poi", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      description: poiDescription,
+      highlightedData: combinedEntities,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      alert("✅ POI saved successfully!");
+      document.getElementById("poi-description-area").innerHTML = "";
+      lastHighlighted = null;
+    })
+    .catch((error) => console.error("Error:", error));
+});
+
+// Fetch all saved POIs
+document.getElementById("fetch-btn").addEventListener("click", function () {
+  fetch("https://repo-backend-epjh.onrender.com/get-pois")
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("Fetch failed");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      const resultArea = document.getElementById("output-area");
+      resultArea.innerHTML = "";
+
+      if (!data.length) {
+        resultArea.innerHTML = "<p>No POIs found.</p>";
+        return;
+      }
+
+      data.forEach((poi, index) => {
+        const div = document.createElement("div");
+        div.style.marginBottom = "15px";
+        div.innerHTML = `
+          <h3>POI ${index + 1}</h3>
+          <p><strong>Description:</strong> ${poi.description}</p>
+          <ul>
+            ${poi.highlightedData
+              .map(
+                (item) => `
+              <li><strong>Entity:</strong> ${item.entity} <br> <strong>URL:</strong> <a href="${item.url}" target="_blank">${item.url}</a></li>
+            `
+              )
+              .join("")}
+          </ul>
+        `;
+        resultArea.appendChild(div);
+      });
+    })
+    .catch((err) => {
+      const resultArea = document.getElementById("output-area");
+      resultArea.innerHTML = "<p style='color: red;'>Error fetching POIs!</p>";
+      console.error("Fetch error:", err);
+    });
+});

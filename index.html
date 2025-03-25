@@ -2,16 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Entity Highlighter and Link Inserter</title>
-  <link rel="stylesheet" href="styles.css" />
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
-    .toolbar button { margin-right: 5px; padding: 5px 10px; }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    .toolbar button {
+      margin-right: 5px;
+      padding: 5px 10px;
+    }
     .poi-description {
       min-height: 150px;
       border: 1px solid #ccc;
       padding: 10px;
+      margin-top: 10px;
       margin-bottom: 10px;
       background: #fff;
     }
@@ -20,75 +29,69 @@
       background: #f9f9f9;
       padding: 10px;
       border: 1px solid #ccc;
-      max-height: 250px;
+      max-height: 300px;
       overflow-y: auto;
     }
-    #fetch-btn {
+    .highlighted {
+      background-color: yellow;
+    }
+    #link-input {
+      display: none;
       margin-top: 10px;
-      padding: 8px 12px;
-      background: #4CAF50;
-      color: white;
-      border: none;
-      cursor: pointer;
     }
-    #fetch-btn:hover { background: #45a049; }
-    .toolbar button:hover { background: #ddd; }
+    #link-input input {
+      padding: 5px;
+      width: 250px;
+    }
+    #link-input button {
+      margin-left: 5px;
+      padding: 5px 10px;
+    }
   </style>
-
-  <script>
-    // ✅ Prevent direct access without login
-    if (localStorage.getItem("isLoggedIn") !== "true") {
-      window.location.href = "login.html";
-    }
-  </script>
 </head>
-
 <body>
-  <div class="header">
-    <h1>Entity Highlighter and Link Inserter</h1>
-    <p>Highlight text in the POI description and insert links as needed.</p>
-  </div>
+
+  <h1>Entity Highlighter and Link Inserter</h1>
+  <p>Highlight text in the POI description and insert links as needed.</p>
 
   <!-- Toolbar -->
   <div class="toolbar">
     <button id="highlight-btn">Highlight</button>
-    <button id="bold-btn"><b>B</b></button>
-    <button id="italic-btn"><i>I</i></button>
-    <button id="underline-btn"><u>U</u></button>
-    <button id="color-btn">A</button>
     <button id="link-btn">🔗 Insert Link</button>
-    <button id="save-btn">Save Changes</button>
+    <button id="save-btn">💾 Save Changes</button>
+    <button id="fetch-btn">📄 View Saved POIs</button>
     <button id="clear-pois-btn">🗑️ Clear All POIs</button>
-
     <button onclick="logout()">🚪 Logout</button>
   </div>
 
-  <!-- POI Input -->
+  <!-- POI Input Area -->
   <div id="poi-description-area" contenteditable="true" class="poi-description">
     Enter your POI description here...
   </div>
 
-  <!-- Link Input -->
-  <div id="link-input" style="display: none; margin-top: 10px;">
+  <!-- Link Insertion Popup -->
+  <div id="link-input">
     <input type="text" id="link-url" placeholder="Enter URL here" />
     <button id="insert-link">Insert Link</button>
     <button id="cancel-link">Cancel</button>
-    
   </div>
 
-  <!-- Fetch Saved POIs -->
-  <button id="fetch-btn">📄 View Saved POIs</button>
+  <!-- Output Area -->
   <div id="output-area"></div>
 
-  <!-- Logout Script -->
   <script>
     function logout() {
       localStorage.removeItem("isLoggedIn");
       window.location.href = "login.html";
     }
+
+    // Optional: Prevent direct access without login
+    if (localStorage.getItem("isLoggedIn") !== "true") {
+      window.location.href = "login.html";
+    }
   </script>
 
-  <!-- App logic -->
   <script src="app.js"></script>
+
 </body>
 </html>
