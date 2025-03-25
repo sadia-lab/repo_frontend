@@ -11,34 +11,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelLinkBtn = document.getElementById("cancel-link");
     const descriptionArea = document.getElementById("poi-description-area");
   
-    // ✅ Auto-highlight + link on highlight
+    // ✅ Highlight text only — no link
     highlightBtn.addEventListener("click", () => {
-      const selection = window.getSelection();
-      const range = selection.getRangeAt(0);
-      const selectedText = selection.toString().trim();
-  
-      if (!selectedText) {
-        alert("⚠️ Please select some text first.");
-        return;
-      }
-  
-      // 1. Apply yellow background
       document.execCommand("backColor", false, "yellow");
-  
-      // 2. Prompt for URL
-      const url = prompt("Enter a URL to link this text (or leave blank to skip):");
-  
-      // 3. If user entered a link, wrap it in an <a> tag
-      if (url) {
-        const a = document.createElement("a");
-        a.href = url;
-        a.target = "_blank";
-        a.textContent = selectedText;
-  
-        // Replace highlighted text with <a>
-        range.deleteContents();
-        range.insertNode(a);
-      }
     });
   
     // ✅ Text formatting
@@ -50,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (color) document.execCommand("foreColor", false, color);
     });
   
-    // ✅ Manual Link Insert
+    // ✅ Insert Link manually
     linkBtn.addEventListener("click", () => {
       linkInput.style.display = "block";
     });
@@ -68,6 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
+        a.classList.add("custom-link"); // 👈 so we can track only user-inserted links
         a.textContent = selectedText;
   
         range.deleteContents();
@@ -88,7 +64,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const description = descriptionArea.innerHTML;
       const highlightedData = [];
   
-      const links = descriptionArea.querySelectorAll("a");
+      // Only save links added via Insert Link (with .custom-link class)
+      const links = descriptionArea.querySelectorAll("a.custom-link");
   
       links.forEach((link) => {
         const entity = link.textContent?.trim();
@@ -107,9 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
         body: JSON.stringify({ description, highlightedData }),
       })
         .then((res) => res.json())
-        .then((data) => {
-          alert("✅ POI saved successfully!");
-        })
+        .then(() => alert("✅ POI saved successfully!"))
         .catch((err) => {
           console.error("Save error:", err);
           alert("❌ Failed to save POI.");
