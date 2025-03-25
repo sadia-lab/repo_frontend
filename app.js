@@ -59,6 +59,11 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
 
+  if (!poiDescription) {
+    alert("⚠️ Please enter a POI description before saving.");
+    return;
+  }
+
   const combinedEntities = [];
   const parser = new DOMParser();
   const doc = parser.parseFromString(poiDescription, "text/html");
@@ -81,21 +86,22 @@ document.getElementById("save-btn").addEventListener("click", () => {
     }),
   })
     .then((response) => response.json())
-    .then((data) => {
+    .then(() => {
       alert("✅ POI saved successfully!");
       document.getElementById("poi-description-area").innerHTML = "";
       lastHighlighted = null;
     })
-    .catch((error) => console.error("Error:", error));
+    .catch((error) => {
+      console.error("Save error:", error);
+      alert("❌ Failed to save POI.");
+    });
 });
 
 // Fetch all saved POIs
 document.getElementById("fetch-btn").addEventListener("click", function () {
   fetch(`${API_BASE}/get-pois`)
     .then((res) => {
-      if (!res.ok) {
-        throw new Error("Fetch failed");
-      }
+      if (!res.ok) throw new Error("Fetch failed");
       return res.json();
     })
     .then((data) => {
