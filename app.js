@@ -13,13 +13,13 @@ document.addEventListener("DOMContentLoaded", () => {
   
     let lastHighlighted = null;
   
-    // Text Highlight
+    // ✅ Highlight selected text with yellow background
     highlightBtn.addEventListener("click", () => {
       document.execCommand("backColor", false, "yellow");
       lastHighlighted = window.getSelection().toString();
     });
   
-    // Formatting
+    // ✅ Text formatting
     boldBtn.addEventListener("click", () => document.execCommand("bold"));
     italicBtn.addEventListener("click", () => document.execCommand("italic"));
     underlineBtn.addEventListener("click", () => document.execCommand("underline"));
@@ -28,44 +28,58 @@ document.addEventListener("DOMContentLoaded", () => {
       if (color) document.execCommand("foreColor", false, color);
     });
   
-    // Link insertion
+    // ✅ Show link input
     linkBtn.addEventListener("click", () => {
       linkInput.style.display = "block";
     });
   
+    // ✅ Insert link into selected text
     insertLinkBtn.addEventListener("click", () => {
       const url = document.getElementById("link-url").value.trim();
-      const selectedText = window.getSelection().toString();
+      const selection = window.getSelection();
   
-      if (url && selectedText) {
-        document.execCommand(
-          "insertHTML",
-          false,
-          `<a href="${url}" target="_blank">${selectedText}</a>`
-        );
+      if (!url || !selection.rangeCount) return;
+  
+      const range = selection.getRangeAt(0);
+      const selectedText = range.toString().trim();
+  
+      if (selectedText) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.textContent = selectedText;
+  
+        range.deleteContents();
+        range.insertNode(a);
       }
   
       linkInput.style.display = "none";
       document.getElementById("link-url").value = "";
     });
   
+    // ✅ Cancel link input
     cancelLinkBtn.addEventListener("click", () => {
       linkInput.style.display = "none";
       document.getElementById("link-url").value = "";
     });
   
-    // Save POI
+    // ✅ Save POI
     saveBtn.addEventListener("click", () => {
       const description = descriptionArea.innerHTML;
       const highlightedData = [];
   
       const links = descriptionArea.querySelectorAll("a");
+  
       links.forEach((link) => {
-        highlightedData.push({
-          entity: link.innerText,
-          url: link.getAttribute("href"),
-        });
+        const entity = link.textContent?.trim();
+        const url = link.getAttribute("href")?.trim();
+  
+        if (entity && url) {
+          highlightedData.push({ entity, url });
+        }
       });
+  
+      console.log("📦 Sending:", { description, highlightedData });
   
       fetch("https://repo-backend-epjh.onrender.com/save-poi", {
         method: "POST",
@@ -82,7 +96,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
   
-    // Fetch all saved POIs (if fetch button exists)
+    // ✅ Fetch saved POIs
     const fetchBtn = document.getElementById("fetch-btn");
     if (fetchBtn) {
       fetchBtn.addEventListener("click", () => {
@@ -110,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   
-    // ✅ Clear all saved POIs
+    // ✅ Clear all POIs
     const clearBtn = document.getElementById("clear-pois-btn");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
@@ -119,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
             method: "DELETE",
           })
             .then((res) => res.json())
-            .then((data) => {
+            .then(() => {
               alert("🗑️ All POIs have been deleted.");
               const output = document.getElementById("output-area");
               if (output) output.innerHTML = "";
