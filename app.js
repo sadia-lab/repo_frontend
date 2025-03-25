@@ -11,12 +11,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelLinkBtn = document.getElementById("cancel-link");
     const descriptionArea = document.getElementById("poi-description-area");
   
-    let lastHighlighted = null;
-  
-    // ✅ Highlight selected text with yellow background
+    // ✅ Auto-highlight + link on highlight
     highlightBtn.addEventListener("click", () => {
+      const selection = window.getSelection();
+      const range = selection.getRangeAt(0);
+      const selectedText = selection.toString().trim();
+  
+      if (!selectedText) {
+        alert("⚠️ Please select some text first.");
+        return;
+      }
+  
+      // 1. Apply yellow background
       document.execCommand("backColor", false, "yellow");
-      lastHighlighted = window.getSelection().toString();
+  
+      // 2. Prompt for URL
+      const url = prompt("Enter a URL to link this text (or leave blank to skip):");
+  
+      // 3. If user entered a link, wrap it in an <a> tag
+      if (url) {
+        const a = document.createElement("a");
+        a.href = url;
+        a.target = "_blank";
+        a.textContent = selectedText;
+  
+        // Replace highlighted text with <a>
+        range.deleteContents();
+        range.insertNode(a);
+      }
     });
   
     // ✅ Text formatting
@@ -28,12 +50,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (color) document.execCommand("foreColor", false, color);
     });
   
-    // ✅ Show link input
+    // ✅ Manual Link Insert
     linkBtn.addEventListener("click", () => {
       linkInput.style.display = "block";
     });
   
-    // ✅ Insert link into selected text
     insertLinkBtn.addEventListener("click", () => {
       const url = document.getElementById("link-url").value.trim();
       const selection = window.getSelection();
@@ -57,7 +78,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("link-url").value = "";
     });
   
-    // ✅ Cancel link input
     cancelLinkBtn.addEventListener("click", () => {
       linkInput.style.display = "none";
       document.getElementById("link-url").value = "";
@@ -96,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
   
-    // ✅ Fetch saved POIs
+    // ✅ Fetch POIs
     const fetchBtn = document.getElementById("fetch-btn");
     if (fetchBtn) {
       fetchBtn.addEventListener("click", () => {
@@ -124,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   
-    // ✅ Clear all POIs
+    // ✅ Clear All POIs
     const clearBtn = document.getElementById("clear-pois-btn");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
