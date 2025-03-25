@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const cancelLinkBtn = document.getElementById("cancel-link");
     const descriptionArea = document.getElementById("poi-description-area");
   
-    // ✅ Highlight text only — no link
+    // ✅ Highlight text only (no link)
     highlightBtn.addEventListener("click", () => {
       document.execCommand("backColor", false, "yellow");
     });
@@ -25,7 +25,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (color) document.execCommand("foreColor", false, color);
     });
   
-    // ✅ Insert Link manually
+    // ✅ Manual Insert Link
     linkBtn.addEventListener("click", () => {
       linkInput.style.display = "block";
     });
@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const a = document.createElement("a");
         a.href = url;
         a.target = "_blank";
-        a.classList.add("custom-link"); // 👈 so we can track only user-inserted links
+        a.classList.add("custom-link"); // only user-added links get tracked
         a.textContent = selectedText;
   
         range.deleteContents();
@@ -64,19 +64,19 @@ document.addEventListener("DOMContentLoaded", () => {
       const description = descriptionArea.innerHTML;
       const highlightedData = [];
   
-      // Only save links added via Insert Link (with .custom-link class)
-      const links = descriptionArea.querySelectorAll("a.custom-link");
+      const temp = document.createElement("div");
+      temp.innerHTML = description;
   
+      const links = temp.querySelectorAll("a.custom-link");
       links.forEach((link) => {
         const entity = link.textContent?.trim();
         const url = link.getAttribute("href")?.trim();
-  
         if (entity && url) {
           highlightedData.push({ entity, url });
         }
       });
   
-      console.log("📦 Sending:", { description, highlightedData });
+      console.log("📦 Sending to backend:", { description, highlightedData });
   
       fetch("https://repo-backend-epjh.onrender.com/save-poi", {
         method: "POST",
@@ -119,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   
-    // ✅ Clear All POIs
+    // ✅ Clear all POIs
     const clearBtn = document.getElementById("clear-pois-btn");
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
