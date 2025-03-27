@@ -54,6 +54,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 // ===== Save POI =====
 document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
+  const username = localStorage.getItem("username");
 
   if (!poiDescription) {
     alert("⚠️ Please enter a POI description before saving.");
@@ -77,6 +78,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
+      username,
       description: poiDescription,
       highlightedData: combinedEntities,
     }),
@@ -95,7 +97,13 @@ document.getElementById("save-btn").addEventListener("click", () => {
 
 // ===== Fetch All POIs =====
 document.getElementById("fetch-btn").addEventListener("click", () => {
-  fetch(`${API_BASE}/get-pois`)
+  const username = localStorage.getItem("username");
+
+  fetch(`${API_BASE}/get-pois`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username })
+  })
     .then((res) => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();

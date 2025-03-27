@@ -92,7 +92,8 @@
 
         if (data.success) {
           localStorage.setItem('isLoggedIn', 'true');
-          window.location.href = 'index.html'; // Redirect to your editor
+          localStorage.setItem('username', username); // ✅ Save logged-in user
+          window.location.href = 'index.html'; // Redirect to main app
         } else {
           document.getElementById('error-msg').textContent = 'Invalid credentials.';
           document.getElementById('error-msg').style.display = 'block';
