@@ -1,6 +1,8 @@
 const API_BASE = "https://repo-backend-epjh.onrender.com";
 
 let lastHighlighted = null;
+let userPOIs = [];
+let currentIndex = 0;
 
 // ===== Highlight selected text =====
 document.getElementById("highlight-btn").addEventListener("click", () => {
@@ -121,6 +123,17 @@ document.getElementById("clear-pois-btn").addEventListener("click", () => {
 // ===== Auto-Fetch POIs on Page Load =====
 window.addEventListener("DOMContentLoaded", fetchUserPOIs);
 
+// ===== Next POI Button Logic =====
+document.getElementById("next-poi-btn").addEventListener("click", () => {
+  if (userPOIs.length === 0) return;
+
+  currentIndex = (currentIndex + 1) % userPOIs.length;
+  const currentPOI = userPOIs[currentIndex];
+
+  document.getElementById("poi-description-area").innerHTML = currentPOI.description;
+  document.getElementById("poi-description-area").scrollIntoView({ behavior: "smooth" });
+});
+
 function fetchUserPOIs() {
   const username = localStorage.getItem("username");
   if (!username) return;
@@ -136,10 +149,13 @@ function fetchUserPOIs() {
         return;
       }
 
-      // Auto-fill first POI description
-      document.getElementById("poi-description-area").innerHTML = data[0].description;
+      userPOIs = data;
+      currentIndex = 0;
 
-      data.forEach((poi, index) => {
+      // Auto-fill first POI
+      document.getElementById("poi-description-area").innerHTML = userPOIs[0].description;
+
+      userPOIs.forEach((poi, index) => {
         const div = document.createElement("div");
         div.style.marginBottom = "15px";
         div.innerHTML = `
