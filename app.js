@@ -95,15 +95,11 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
 });
 
-// ===== Fetch All POIs =====
+// ===== Fetch POIs for Current User =====
 document.getElementById("fetch-btn").addEventListener("click", () => {
   const username = localStorage.getItem("username");
 
-  fetch(`${API_BASE}/get-pois`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username })
-  })
+  fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
     .then((res) => {
       if (!res.ok) throw new Error("Fetch failed");
       return res.json();
