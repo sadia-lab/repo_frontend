@@ -88,6 +88,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
       alert("✅ POI saved successfully!");
       document.getElementById("poi-description-area").innerHTML = "";
       lastHighlighted = null;
+      fetchUserPOIs(); // refresh the list after save
     })
     .catch((error) => {
       console.error("Save error:", error);
@@ -108,6 +109,7 @@ document.getElementById("clear-pois-btn").addEventListener("click", () => {
       .then(() => {
         alert("🗑️ All POIs have been deleted.");
         document.getElementById("output-area").innerHTML = "";
+        document.getElementById("poi-description-area").innerHTML = "";
       })
       .catch((err) => {
         console.error("Clear error:", err);
@@ -134,6 +136,9 @@ function fetchUserPOIs() {
         return;
       }
 
+      // Auto-fill first POI description
+      document.getElementById("poi-description-area").innerHTML = data[0].description;
+
       data.forEach((poi, index) => {
         const div = document.createElement("div");
         div.style.marginBottom = "15px";
@@ -141,13 +146,9 @@ function fetchUserPOIs() {
           <h3>POI ${index + 1}</h3>
           <p><strong>Description:</strong> ${poi.description}</p>
           <ul>
-            ${poi.highlightedData
-              .map(
-                (item) => `
-              <li><strong>Entity:</strong> ${item.entity} <br> <strong>URL:</strong> <a href="${item.url}" target="_blank">${item.url}</a></li>
-            `
-              )
-              .join("")}
+            ${poi.highlightedData.map(item => `
+              <li><strong>Entity:</strong> ${item.entity}<br><strong>URL:</strong> <a href="${item.url}" target="_blank">${item.url}</a></li>
+            `).join("")}
           </ul>
         `;
         resultArea.appendChild(div);
