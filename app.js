@@ -56,8 +56,8 @@ document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
   const username = localStorage.getItem("username");
 
-  if (!poiDescription) {
-    alert("⚠️ Please enter a POI description before saving.");
+  if (!poiDescription || !username) {
+    alert("⚠️ Username or description missing.");
     return;
   }
 
@@ -95,15 +95,36 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
 });
 
-// ===== Fetch POIs for Current User =====
-document.getElementById("fetch-btn").addEventListener("click", () => {
+// ===== Fetch POIs for Current User (on click) =====
+document.getElementById("fetch-btn").addEventListener("click", fetchUserPOIs);
+
+// ===== Clear All POIs =====
+document.getElementById("clear-pois-btn").addEventListener("click", () => {
+  if (confirm("Are you sure you want to delete ALL saved POIs?")) {
+    fetch(`${API_BASE}/clear-pois`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then(() => {
+        alert("🗑️ All POIs have been deleted.");
+        document.getElementById("output-area").innerHTML = "";
+      })
+      .catch((err) => {
+        console.error("Clear error:", err);
+        alert("❌ Failed to delete POIs.");
+      });
+  }
+});
+
+// ===== Auto-Fetch POIs on Page Load =====
+window.addEventListener("DOMContentLoaded", fetchUserPOIs);
+
+function fetchUserPOIs() {
   const username = localStorage.getItem("username");
+  if (!username) return;
 
   fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
-    .then((res) => {
-      if (!res.ok) throw new Error("Fetch failed");
-      return res.json();
-    })
+    .then((res) => res.json())
     .then((data) => {
       const resultArea = document.getElementById("output-area");
       resultArea.innerHTML = "";
@@ -137,22 +158,4 @@ document.getElementById("fetch-btn").addEventListener("click", () => {
       resultArea.innerHTML = "<p style='color: red;'>Error fetching POIs!</p>";
       console.error("Fetch error:", err);
     });
-});
-
-// ===== Clear All POIs =====
-document.getElementById("clear-pois-btn").addEventListener("click", () => {
-  if (confirm("Are you sure you want to delete ALL saved POIs?")) {
-    fetch(`${API_BASE}/clear-pois`, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert("🗑️ All POIs have been deleted.");
-        document.getElementById("output-area").innerHTML = "";
-      })
-      .catch((err) => {
-        console.error("Clear error:", err);
-        alert("❌ Failed to delete POIs.");
-      });
-  }
-});
+}
