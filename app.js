@@ -56,7 +56,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 // ===== Save POI =====
 document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
-  const username = localStorage.getItem("username");
+  const username = localStorage.getItem("username")?.trim().toLowerCase(); // ✅ normalize
 
   if (!poiDescription || !username) {
     alert("⚠️ Username or description missing.");
@@ -134,8 +134,9 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
   document.getElementById("poi-description-area").scrollIntoView({ behavior: "smooth" });
 });
 
+// ===== Fetch Function with Normalized Username =====
 function fetchUserPOIs() {
-  const username = localStorage.getItem("username");
+  const username = localStorage.getItem("username")?.trim().toLowerCase(); // ✅ normalize
   if (!username) return;
 
   fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
