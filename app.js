@@ -55,11 +55,13 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 
 // ===== Save POI =====
 document.getElementById("save-btn").addEventListener("click", () => {
-  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
-  const username = localStorage.getItem("username")?.trim().toLowerCase(); // ✅ normalize
+  const poiElement = document.getElementById("poi-description-area");
+  const poiDescription = poiElement.innerHTML.trim();
+  const plainText = poiElement.innerText.trim();
+  const username = localStorage.getItem("username");
 
-  if (!poiDescription || !username) {
-    alert("⚠️ Username or description missing.");
+  if (!plainText || plainText === "Enter your POI description here..." || !username) {
+    alert("⚠️ Please enter a valid POI description before saving.");
     return;
   }
 
@@ -98,9 +100,6 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
 });
 
-// ===== Fetch POIs for Current User (on click) =====
-document.getElementById("fetch-btn").addEventListener("click", fetchUserPOIs);
-
 // ===== Clear All POIs =====
 document.getElementById("clear-pois-btn").addEventListener("click", () => {
   if (confirm("Are you sure you want to delete ALL saved POIs?")) {
@@ -120,6 +119,9 @@ document.getElementById("clear-pois-btn").addEventListener("click", () => {
   }
 });
 
+// ===== View Saved POIs =====
+document.getElementById("fetch-btn").addEventListener("click", fetchUserPOIs);
+
 // ===== Auto-Fetch POIs on Page Load =====
 window.addEventListener("DOMContentLoaded", fetchUserPOIs);
 
@@ -134,9 +136,17 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
   document.getElementById("poi-description-area").scrollIntoView({ behavior: "smooth" });
 });
 
-// ===== Fetch Function with Normalized Username =====
+// ===== Prevent Saving Placeholder Text =====
+document.getElementById("poi-description-area").addEventListener("focus", () => {
+  const el = document.getElementById("poi-description-area");
+  if (el.innerText.trim() === "Enter your POI description here...") {
+    el.innerHTML = "";
+  }
+});
+
+// ===== Fetch POIs for Current User =====
 function fetchUserPOIs() {
-  const username = localStorage.getItem("username")?.trim().toLowerCase(); // ✅ normalize
+  const username = localStorage.getItem("username");
   if (!username) return;
 
   fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
