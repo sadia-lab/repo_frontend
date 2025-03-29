@@ -53,15 +53,13 @@ document.getElementById("cancel-link").addEventListener("click", () => {
   activeHighlight = null;
 });
 
-// ===== Save POI =====
+// ===== Save POI (UPDATED to update current POI) =====
 document.getElementById("save-btn").addEventListener("click", () => {
-  const poiElement = document.getElementById("poi-description-area");
-  const poiDescription = poiElement.innerHTML.trim();
-  const plainText = poiElement.innerText.trim();
-  const username = localStorage.getItem("username");
+  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
+  const username = localStorage.getItem("username")?.trim().toLowerCase();
 
-  if (!plainText || plainText === "Enter your POI description here..." || !username) {
-    alert("⚠️ Please enter a valid POI description before saving.");
+  if (!poiDescription || !username) {
+    alert("⚠️ Username or description missing.");
     return;
   }
 
@@ -78,27 +76,33 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
   });
 
-  fetch(`${API_BASE}/save-poi`, {
+  fetch(`${API_BASE}/update-poi`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username,
+      poi_index: currentIndex,
       description: poiDescription,
       highlightedData: combinedEntities,
     }),
   })
     .then((res) => res.json())
     .then(() => {
-      alert("✅ POI saved successfully!");
-      document.getElementById("poi-description-area").innerHTML = "";
-      lastHighlighted = null;
-      fetchUserPOIs(); // refresh the list after save
+      alert("✅ POI updated successfully!");
+      userPOIs[currentIndex] = {
+        description: poiDescription,
+        highlightedData: combinedEntities,
+      };
+      fetchUserPOIs();
     })
     .catch((error) => {
-      console.error("Save error:", error);
-      alert("❌ Failed to save POI.");
+      console.error("Update error:", error);
+      alert("❌ Failed to update POI.");
     });
 });
+
+// ===== Fetch POIs for Current User =====
+document.getElementById("fetch-btn").addEventListener("click", fetchUserPOIs);
 
 // ===== Clear All POIs =====
 document.getElementById("clear-pois-btn").addEventListener("click", () => {
@@ -119,12 +123,6 @@ document.getElementById("clear-pois-btn").addEventListener("click", () => {
   }
 });
 
-// ===== View Saved POIs =====
-document.getElementById("fetch-btn").addEventListener("click", fetchUserPOIs);
-
-// ===== Auto-Fetch POIs on Page Load =====
-window.addEventListener("DOMContentLoaded", fetchUserPOIs);
-
 // ===== Next POI Button Logic =====
 document.getElementById("next-poi-btn").addEventListener("click", () => {
   if (userPOIs.length === 0) return;
@@ -136,17 +134,12 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
   document.getElementById("poi-description-area").scrollIntoView({ behavior: "smooth" });
 });
 
-// ===== Prevent Saving Placeholder Text =====
-document.getElementById("poi-description-area").addEventListener("focus", () => {
-  const el = document.getElementById("poi-description-area");
-  if (el.innerText.trim() === "Enter your POI description here...") {
-    el.innerHTML = "";
-  }
-});
+// ===== Auto-Fetch POIs on Page Load =====
+window.addEventListener("DOMContentLoaded", fetchUserPOIs);
 
-// ===== Fetch POIs for Current User =====
+// ===== Fetch Function with Normalized Username =====
 function fetchUserPOIs() {
-  const username = localStorage.getItem("username");
+  const username = localStorage.getItem("username")?.trim().toLowerCase();
   if (!username) return;
 
   fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
@@ -163,7 +156,6 @@ function fetchUserPOIs() {
       userPOIs = data;
       currentIndex = 0;
 
-      // Auto-fill first POI
       document.getElementById("poi-description-area").innerHTML = userPOIs[0].description;
 
       userPOIs.forEach((poi, index) => {
