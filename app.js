@@ -53,7 +53,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
   activeHighlight = null;
 });
 
-// ===== Save POI (UPDATED to update current POI) =====
+// ===== Save POI =====
 document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
   const username = localStorage.getItem("username")?.trim().toLowerCase();
@@ -101,43 +101,20 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
 });
 
-// ===== Fetch POIs for Current User =====
-document.getElementById("fetch-btn").addEventListener("click", fetchUserPOIs);
-
-// ===== Clear All POIs =====
-document.getElementById("clear-pois-btn").addEventListener("click", () => {
-  if (confirm("Are you sure you want to delete ALL saved POIs?")) {
-    fetch(`${API_BASE}/clear-pois`, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then(() => {
-        alert("🗑️ All POIs have been deleted.");
-        document.getElementById("output-area").innerHTML = "";
-        document.getElementById("poi-description-area").innerHTML = "";
-      })
-      .catch((err) => {
-        console.error("Clear error:", err);
-        alert("❌ Failed to delete POIs.");
-      });
-  }
-});
-
-// ===== Next POI Button Logic =====
+// ===== Next POI =====
 document.getElementById("next-poi-btn").addEventListener("click", () => {
-  if (userPOIs.length === 0) return;
-
-  currentIndex = (currentIndex + 1) % userPOIs.length;
-  const currentPOI = userPOIs[currentIndex];
-
-  document.getElementById("poi-description-area").innerHTML = currentPOI.description;
-  document.getElementById("poi-description-area").scrollIntoView({ behavior: "smooth" });
+  if (userPOIs.length === 0 || currentIndex >= userPOIs.length - 1) {
+    alert("✅ You’ve completed all POIs!");
+    return;
+  }
+  currentIndex++;
+  renderCurrentPOI();
+  updatePOIProgressUI();
 });
 
-// ===== Auto-Fetch POIs on Page Load =====
+// ===== Fetch POIs on Page Load =====
 window.addEventListener("DOMContentLoaded", fetchUserPOIs);
 
-// ===== Fetch Function with Normalized Username =====
 function fetchUserPOIs() {
   const username = localStorage.getItem("username")?.trim().toLowerCase();
   if (!username) return;
@@ -145,37 +122,26 @@ function fetchUserPOIs() {
   fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
     .then((res) => res.json())
     .then((data) => {
-      const resultArea = document.getElementById("output-area");
-      resultArea.innerHTML = "";
-
-      if (!data.length) {
-        resultArea.innerHTML = "<p>No POIs found.</p>";
-        return;
-      }
-
-      userPOIs = data;
+      userPOIs = data || [];
       currentIndex = 0;
-
-      document.getElementById("poi-description-area").innerHTML = userPOIs[0].description;
-
-      userPOIs.forEach((poi, index) => {
-        const div = document.createElement("div");
-        div.style.marginBottom = "15px";
-        div.innerHTML = `
-          <h3>POI ${index + 1}</h3>
-          <p><strong>Description:</strong> ${poi.description}</p>
-          <ul>
-            ${poi.highlightedData.map(item => `
-              <li><strong>Entity:</strong> ${item.entity}<br><strong>URL:</strong> <a href="${item.url}" target="_blank">${item.url}</a></li>
-            `).join("")}
-          </ul>
-        `;
-        resultArea.appendChild(div);
-      });
+      renderCurrentPOI();
+      updatePOIProgressUI();
     })
     .catch((err) => {
-      const resultArea = document.getElementById("output-area");
-      resultArea.innerHTML = "<p style='color: red;'>Error fetching POIs!</p>";
       console.error("Fetch error:", err);
+      alert("❌ Failed to fetch POIs.");
     });
+}
+
+function renderCurrentPOI() {
+  if (userPOIs[currentIndex]) {
+    document.getElementById("poi-description-area").innerHTML = userPOIs[currentIndex].description;
+  }
+}
+
+function updatePOIProgressUI() {
+  const steps = document.querySelectorAll(".poi-step");
+  steps.forEach((step, index) => {
+    step.classList.toggle("active", index === currentIndex);
+  });
 }
