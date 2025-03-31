@@ -3,6 +3,7 @@ const API_BASE = "https://repo-backend-epjh.onrender.com";
 let lastHighlighted = null;
 let userPOIs = [];
 let currentIndex = 0;
+const highlightedPOIIndices = new Set(); // Track which POIs have highlights
 
 // ===== Highlight selected text =====
 document.getElementById("highlight-btn").addEventListener("click", () => {
@@ -76,6 +77,10 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
   });
 
+  if (combinedEntities.length > 0) {
+    highlightedPOIIndices.add(currentIndex); // Mark this POI as highlighted
+  }
+
   fetch(`${API_BASE}/update-poi`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -129,7 +134,12 @@ function updateProgressUI() {
     const step = document.createElement("div");
     step.className = "poi-step";
     step.textContent = `POI ${index + 1}`;
-    if (index === currentIndex) step.classList.add("active");
+
+    if (index === currentIndex) {
+      step.classList.add("active");
+    } else if (highlightedPOIIndices.has(index)) {
+      step.style.backgroundColor = "yellow";
+    }
 
     step.addEventListener("click", () => {
       currentIndex = index;
@@ -153,8 +163,15 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Sort by poiIndex just in case
       userPOIs = data.sort((a, b) => a.poiIndex - b.poiIndex);
+
+      // Pre-fill highlightedPOIIndices from saved data
+      userPOIs.forEach((poi, index) => {
+        if (poi.highlightedData && poi.highlightedData.length > 0) {
+          highlightedPOIIndices.add(index);
+        }
+      });
+
       currentIndex = 0;
       loadCurrentPOI();
     })
