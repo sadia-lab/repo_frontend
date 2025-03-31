@@ -41,9 +41,10 @@
 
     .poi-progress {
       display: flex;
-      justify-content: space-between;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
       margin: 20px 0;
-      padding: 0 10px;
     }
 
     .poi-step {
@@ -52,6 +53,8 @@
       border: 1px solid #ccc;
       background-color: #eee;
       font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.2s;
     }
 
     .poi-step.active {
@@ -135,7 +138,7 @@
 
     <!-- POI Step Wizard -->
     <div id="poi-progress" class="poi-progress">
-      <!-- Dynamically filled -->
+      <!-- Steps dynamically inserted by app.js -->
     </div>
 
     <!-- Toolbar -->
@@ -151,7 +154,7 @@
 
     <!-- POI Input Area -->
     <div id="poi-description-area" contenteditable="true" class="poi-description">
-      Enter your POI description here...
+      Loading...
     </div>
 
     <!-- Link Insertion Popup -->
@@ -175,36 +178,6 @@
     if (localStorage.getItem("isLoggedIn") !== "true") {
       window.location.href = "login.html";
     }
-
-    const totalPOIs = 5;
-    let currentPOIIndex = 0;
-
-    function renderPOISteps() {
-      const progressBar = document.getElementById('poi-progress');
-      progressBar.innerHTML = '';
-
-      for (let i = 0; i < totalPOIs; i++) {
-        const step = document.createElement('div');
-        step.className = 'poi-step';
-        if (i === currentPOIIndex) step.classList.add('active');
-        step.textContent = `POI ${i + 1}`;
-        progressBar.appendChild(step);
-      }
-    }
-
-    window.addEventListener('DOMContentLoaded', () => {
-      renderPOISteps();
-
-      document.getElementById('next-poi-btn').addEventListener('click', () => {
-        if (currentPOIIndex < totalPOIs - 1) {
-          currentPOIIndex++;
-          document.getElementById('poi-description-area').innerHTML = '';
-          renderPOISteps();
-        } else {
-          alert("🎉 You’ve completed all POIs!");
-        }
-      });
-    });
   </script>
 
   <!-- Main Logic -->

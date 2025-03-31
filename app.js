@@ -81,7 +81,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       username,
-      poi_index: currentIndex,
+      poi_index: userPOIs[currentIndex].poiIndex,
       description: poiDescription,
       highlightedData: combinedEntities,
     }),
@@ -111,27 +111,36 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
   }
 });
 
+// ===== Load Current POI =====
 function loadCurrentPOI() {
   const poi = userPOIs[currentIndex];
   document.getElementById("poi-description-area").innerHTML = poi.description;
   updateProgressUI();
 }
 
+// ===== Update POI Progress UI =====
 function updateProgressUI() {
   const progressBar = document.getElementById("poi-progress");
   if (!progressBar) return;
 
   progressBar.innerHTML = "";
+
   userPOIs.forEach((_, index) => {
     const step = document.createElement("div");
     step.className = "poi-step";
-    if (index === currentIndex) step.classList.add("active");
     step.textContent = `POI ${index + 1}`;
+    if (index === currentIndex) step.classList.add("active");
+
+    step.addEventListener("click", () => {
+      currentIndex = index;
+      loadCurrentPOI();
+    });
+
     progressBar.appendChild(step);
   });
 }
 
-// ===== Fetch POIs for Current User on Load =====
+// ===== Initial Load =====
 window.addEventListener("DOMContentLoaded", () => {
   const username = localStorage.getItem("username")?.trim().toLowerCase();
   if (!username) return;
@@ -144,7 +153,8 @@ window.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      userPOIs = data;
+      // Sort by poiIndex just in case
+      userPOIs = data.sort((a, b) => a.poiIndex - b.poiIndex);
       currentIndex = 0;
       loadCurrentPOI();
     })
