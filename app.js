@@ -53,7 +53,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
   activeHighlight = null;
 });
 
-// ===== Save POI =====
+// ===== Save POI (Update current POI) =====
 document.getElementById("save-btn").addEventListener("click", () => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
   const username = localStorage.getItem("username")?.trim().toLowerCase();
@@ -89,11 +89,9 @@ document.getElementById("save-btn").addEventListener("click", () => {
     .then((res) => res.json())
     .then(() => {
       alert("✅ POI updated successfully!");
-      userPOIs[currentIndex] = {
-        description: poiDescription,
-        highlightedData: combinedEntities,
-      };
-      fetchUserPOIs();
+      userPOIs[currentIndex].description = poiDescription;
+      userPOIs[currentIndex].highlightedData = combinedEntities;
+      updateProgressUI();
     })
     .catch((error) => {
       console.error("Update error:", error);
@@ -101,47 +99,57 @@ document.getElementById("save-btn").addEventListener("click", () => {
     });
 });
 
-// ===== Next POI =====
+// ===== Next POI Button =====
 document.getElementById("next-poi-btn").addEventListener("click", () => {
-  if (userPOIs.length === 0 || currentIndex >= userPOIs.length - 1) {
-    alert("✅ You’ve completed all POIs!");
-    return;
+  if (userPOIs.length === 0) return;
+
+  if (currentIndex < userPOIs.length - 1) {
+    currentIndex++;
+    loadCurrentPOI();
+  } else {
+    alert("🎉 You’ve completed all POIs!");
   }
-  currentIndex++;
-  renderCurrentPOI();
-  updatePOIProgressUI();
 });
 
-// ===== Fetch POIs on Page Load =====
-window.addEventListener("DOMContentLoaded", fetchUserPOIs);
+function loadCurrentPOI() {
+  const poi = userPOIs[currentIndex];
+  document.getElementById("poi-description-area").innerHTML = poi.description;
+  updateProgressUI();
+}
 
-function fetchUserPOIs() {
+function updateProgressUI() {
+  const progressBar = document.getElementById("poi-progress");
+  if (!progressBar) return;
+
+  progressBar.innerHTML = "";
+  userPOIs.forEach((_, index) => {
+    const step = document.createElement("div");
+    step.className = "poi-step";
+    if (index === currentIndex) step.classList.add("active");
+    step.textContent = `POI ${index + 1}`;
+    progressBar.appendChild(step);
+  });
+}
+
+// ===== Fetch POIs for Current User on Load =====
+window.addEventListener("DOMContentLoaded", () => {
   const username = localStorage.getItem("username")?.trim().toLowerCase();
   if (!username) return;
 
   fetch(`${API_BASE}/get-pois?username=${encodeURIComponent(username)}`)
     .then((res) => res.json())
     .then((data) => {
-      userPOIs = data || [];
+      if (!Array.isArray(data) || data.length === 0) {
+        alert("No POIs found for user.");
+        return;
+      }
+
+      userPOIs = data;
       currentIndex = 0;
-      renderCurrentPOI();
-      updatePOIProgressUI();
+      loadCurrentPOI();
     })
     .catch((err) => {
       console.error("Fetch error:", err);
-      alert("❌ Failed to fetch POIs.");
+      alert("❌ Error fetching POIs");
     });
-}
-
-function renderCurrentPOI() {
-  if (userPOIs[currentIndex]) {
-    document.getElementById("poi-description-area").innerHTML = userPOIs[currentIndex].description;
-  }
-}
-
-function updatePOIProgressUI() {
-  const steps = document.querySelectorAll(".poi-step");
-  steps.forEach((step, index) => {
-    step.classList.toggle("active", index === currentIndex);
-  });
-}
+});
