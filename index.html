@@ -163,24 +163,34 @@
       <button id="cancel-link">Cancel</button>
     </div>
 
-    <!-- Progress wizard moved here -->
-    <div id="poi-progress" class="poi-progress">
-      <!-- Steps dynamically inserted -->
-    </div>
+    <!-- Progress wizard -->
+    <div id="poi-progress" class="poi-progress"></div>
 
     <!-- Output Area -->
     <div id="output-area"></div>
   </div>
 
-  <!-- Login Check + Logout Logic -->
+  <!-- Login Check + Auto Logout Logic -->
   <script>
     function logout() {
-      localStorage.removeItem("isLoggedIn");
+      localStorage.clear();
       window.location.href = "login.html";
     }
 
-    if (localStorage.getItem("isLoggedIn") !== "true") {
-      window.location.href = "login.html";
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    const loginTime = parseInt(localStorage.getItem("loginTime"), 10);
+    const currentTime = Date.now();
+    const TEN_MINUTES = 10 * 60 * 1000;
+
+    if (!isLoggedIn || isNaN(loginTime) || (currentTime - loginTime > TEN_MINUTES)) {
+      alert("⏰ Session expired. You have been logged out.");
+      logout();
+    } else {
+      // Set logout timer for remaining time
+      setTimeout(() => {
+        alert("⏰ 10 minutes passed. Logging you out.");
+        logout();
+      }, TEN_MINUTES - (currentTime - loginTime));
     }
   </script>
 
