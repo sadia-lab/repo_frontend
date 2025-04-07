@@ -3,7 +3,7 @@ const API_BASE = "https://repo-backend-epjh.onrender.com";
 let lastHighlighted = null;
 let userPOIs = [];
 let currentIndex = 0;
-const highlightedPOIIndices = new Set(); // Track which POIs have highlights
+const highlightedPOIIndices = new Set();
 
 // ===== Highlight selected text =====
 document.getElementById("highlight-btn").addEventListener("click", () => {
@@ -78,7 +78,7 @@ document.getElementById("save-btn").addEventListener("click", () => {
   });
 
   if (combinedEntities.length > 0) {
-    highlightedPOIIndices.add(currentIndex); // Mark this POI as highlighted
+    highlightedPOIIndices.add(currentIndex);
   }
 
   fetch(`${API_BASE}/update-poi`, {
@@ -107,7 +107,6 @@ document.getElementById("save-btn").addEventListener("click", () => {
 // ===== Next POI Button =====
 document.getElementById("next-poi-btn").addEventListener("click", () => {
   if (userPOIs.length === 0) return;
-
   if (currentIndex < userPOIs.length - 1) {
     currentIndex++;
     loadCurrentPOI();
@@ -123,17 +122,23 @@ function loadCurrentPOI() {
   updateProgressUI();
 }
 
-// ===== Update POI Progress UI =====
+// ===== Extract title for POI from its description =====
+function extractTitle(description) {
+  const match = description.split(" - ")[0].trim();
+  return match.length > 50 ? match.slice(0, 50) + "..." : match;
+}
+
+// ===== Update POI Progress UI with Titles =====
 function updateProgressUI() {
   const progressBar = document.getElementById("poi-progress");
   if (!progressBar) return;
 
   progressBar.innerHTML = "";
 
-  userPOIs.forEach((_, index) => {
+  userPOIs.forEach((poi, index) => {
     const step = document.createElement("div");
     step.className = "poi-step";
-    step.textContent = `POI ${index + 1}`;
+    step.textContent = extractTitle(poi.description);
 
     if (index === currentIndex) {
       step.classList.add("active");
@@ -165,7 +170,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
       userPOIs = data.sort((a, b) => a.poiIndex - b.poiIndex);
 
-      // Pre-fill highlightedPOIIndices from saved data
       userPOIs.forEach((poi, index) => {
         if (poi.highlightedData && poi.highlightedData.length > 0) {
           highlightedPOIIndices.add(index);
