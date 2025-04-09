@@ -132,6 +132,14 @@
       overflow-y: auto;
     }
   </style>
+
+  <!-- 🔐 Login Redirect Protection -->
+  <script>
+    const isLoggedIn = localStorage.getItem("isLoggedIn");
+    if (isLoggedIn !== "true") {
+      window.location.href = "login.html";
+    }
+  </script>
 </head>
 <body>
   <div class="container">
@@ -170,17 +178,15 @@
     <div id="output-area"></div>
   </div>
 
-  <!-- Login Check + Auto Logout Logic -->
- / <script>
+  <!-- Logout Function -->
+  <script>
     function logout() {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("loginTime");
-    window.location.href = "login.html";
-  }
-
-   
- </script>
- 
+      localStorage.removeItem("isLoggedIn");
+      localStorage.removeItem("loginTime");
+      localStorage.removeItem("username");
+      window.location.href = "login.html";
+    }
+  </script>
 
   <!-- Main Logic -->
   <script src="app.js"></script>
