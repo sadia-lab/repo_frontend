@@ -171,35 +171,16 @@
   </div>
 
   <!-- Login Check + Auto Logout Logic -->
- <!--/ <script>
+ / <script>
     function logout() {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("loginTime");
     window.location.href = "login.html";
   }
 
-  const isLoggedIn = localStorage.getItem("isLoggedIn");
-
-  if (isLoggedIn === "true") {
-    const loginTime = parseInt(localStorage.getItem("loginTime"), 10);
-    const currentTime = Date.now();
-    const TEN_MINUTES = 10 * 60 * 1000;
-
-    if (isNaN(loginTime) || (currentTime - loginTime > TEN_MINUTES)) {
-      alert("⏰ Session expired. You have been logged out.");
-      logout();
-    } else {
-      setTimeout(() => {
-        alert("⏰ 10 minutes passed. Logging you out.");
-        logout();
-      }, TEN_MINUTES - (currentTime - loginTime));
-    }
-  } else {
-    // Not logged in
-    logout();
-  }
+   
  </script>
- -->
+ 
 
   <!-- Main Logic -->
   <script src="app.js"></script>
