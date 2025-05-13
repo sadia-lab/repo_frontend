@@ -157,13 +157,23 @@ function updateProgressUI() {
 // ✨ Unhighlight Entity on Click
 document.getElementById("poi-description-area").addEventListener("click", (event) => {
   const target = event.target;
+
   if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
-    if (confirm("Do you want to remove this highlight?")) {
-      const textNode = document.createTextNode(target.innerText);
+    if (confirm("Do you want to remove this highlight and any link?")) {
+      let plainText = target.innerText;  // This will remove any inner <a> tags too
+      const textNode = document.createTextNode(plainText);
       target.parentNode.replaceChild(textNode, target);
+    }
+  } else if (target.tagName === "A" && target.closest(".highlighted")) {
+    if (confirm("Do you want to remove the link and highlight?")) {
+      const span = target.closest(".highlighted");
+      const plainText = span.innerText;
+      const textNode = document.createTextNode(plainText);
+      span.parentNode.replaceChild(textNode, span);
     }
   }
 });
+
 
 // ===== Initial Load =====
 window.addEventListener("DOMContentLoaded", () => {
