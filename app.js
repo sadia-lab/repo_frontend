@@ -154,6 +154,16 @@ function updateProgressUI() {
     progressBar.appendChild(step);
   });
 }
+// ✨ Unhighlight Entity on Click
+document.getElementById("poi-description-area").addEventListener("click", (event) => {
+  const target = event.target;
+  if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
+    if (confirm("Do you want to remove this highlight?")) {
+      const textNode = document.createTextNode(target.innerText);
+      target.parentNode.replaceChild(textNode, target);
+    }
+  }
+});
 
 // ===== Initial Load =====
 window.addEventListener("DOMContentLoaded", () => {
