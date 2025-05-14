@@ -18,6 +18,8 @@ document.getElementById("highlight-btn").addEventListener("click", () => {
     range.insertNode(span);
     selection.removeAllRanges();
     lastHighlighted = span;
+    saveCurrentPOI();
+
   }
 });
 
@@ -42,6 +44,7 @@ document.getElementById("insert-link").addEventListener("click", () => {
     link.textContent = activeHighlight.textContent;
     activeHighlight.innerHTML = "";
     activeHighlight.appendChild(link);
+    saveCurrentPOI();
   }
   document.getElementById("link-input").style.display = "none";
   document.getElementById("link-url").value = "";
@@ -174,6 +177,50 @@ document.getElementById("poi-description-area").addEventListener("click", (event
   }
 });
 
+function saveCurrentPOI() {
+  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
+  const username = localStorage.getItem("username")?.trim().toLowerCase();
+
+  if (!poiDescription || !username) return;
+
+  const combinedEntities = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(poiDescription, "text/html");
+  const highlightedElements = doc.querySelectorAll(".highlighted");
+
+  highlightedElements.forEach((element) => {
+    const link = element.querySelector("a");
+    combinedEntities.push({
+      entity: link ? link.textContent.trim() : element.textContent.trim(),
+      url: link ? link.href : null,
+    });
+  });
+
+  if (combinedEntities.length > 0) {
+    highlightedPOIIndices.add(currentIndex);
+  }
+
+  fetch(`${API_BASE}/update-poi`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      username,
+      poi_index: userPOIs[currentIndex].poiIndex,
+      description: poiDescription,
+      highlightedData: combinedEntities,
+    }),
+  })
+  .then((res) => res.json())
+  .then(() => {
+    console.log("✅ Auto-saved successfully.");
+    userPOIs[currentIndex].description = poiDescription;
+    userPOIs[currentIndex].highlightedData = combinedEntities;
+    updateProgressUI();
+  })
+  .catch((error) => {
+    console.error("❌ Auto-save failed:", error);
+  });
+}
 
 // ===== Initial Load =====
 window.addEventListener("DOMContentLoaded", () => {
