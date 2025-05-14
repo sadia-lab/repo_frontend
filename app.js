@@ -75,18 +75,38 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
 // ===== Load Current POI =====
 function loadCurrentPOI() {
   const poi = userPOIs[currentIndex];
-  document.getElementById("poi-description-area").innerHTML = poi.description;
-  parseAndRestoreHighlights(); // ✅ Restore highlights behavior
+  const area = document.getElementById("poi-description-area");
+  area.innerHTML = poi.description;
+
+  // Clear old highlights
+  const highlightedElements = area.querySelectorAll(".highlighted");
+  highlightedElements.forEach(el => {
+    const textNode = document.createTextNode(el.innerText);
+    el.parentNode.replaceChild(textNode, el);
+  });
+
+  // Reapply highlights from highlightedData
+  if (poi.highlightedData && poi.highlightedData.length > 0) {
+    poi.highlightedData.forEach(({ entity, url }) => {
+      const regex = new RegExp(entity, 'g');
+      area.innerHTML = area.innerHTML.replace(regex, () => {
+        const linkPart = url ? `<a href="${url}" target="_blank">${entity}</a>` : entity;
+        return `<span class="highlighted" style="background-color:yellow;">${linkPart}</span>`;
+      });
+    });
+  }
+
+  parseAndRestoreHighlights();
   updateProgressUI();
 }
 
-// ===== Restore Highlight Click Behavior After Loading HTML =====
+// ===== Restore Highlight Click Behavior =====
 function parseAndRestoreHighlights() {
   const area = document.getElementById("poi-description-area");
   const highlightedElements = area.querySelectorAll(".highlighted");
 
   highlightedElements.forEach(element => {
-    element.addEventListener("click", (event) => {
+    element.addEventListener("click", () => {
       if (confirm("Do you want to remove this highlight and any link?")) {
         const plainText = element.innerText;
         const textNode = document.createTextNode(plainText);
@@ -162,9 +182,7 @@ function saveCurrentPOI(showAlert = false) {
     });
   });
 
-  if (combinedEntities.length > 0) {
-    highlightedPOIIndices.add(currentIndex);
-  }
+  highlightedPOIIndices.add(currentIndex);
 
   fetch(`${API_BASE}/update-poi`, {
     method: "POST",
@@ -219,7 +237,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// ===== Auto-Save Before Logout or Page Reload Using sendBeacon =====
+// ===== Auto-Save Before Logout or Page Reload =====
 window.addEventListener("beforeunload", (e) => {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
   const username = localStorage.getItem("username")?.trim().toLowerCase();
