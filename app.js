@@ -58,7 +58,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 
 // ===== Save POI (Update current POI) =====
 document.getElementById("save-btn").addEventListener("click", () => {
-  saveCurrentPOI(true); // Explicit save shows confirmation
+  saveCurrentPOI(true); // Manual save, show confirmation
 });
 
 // ===== Next POI Button =====
@@ -118,7 +118,7 @@ document.getElementById("poi-description-area").addEventListener("click", (event
 
   if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
     if (confirm("Do you want to remove this highlight and any link?")) {
-      let plainText = target.innerText;
+      const plainText = target.innerText;
       const textNode = document.createTextNode(plainText);
       target.parentNode.replaceChild(textNode, target);
     }
@@ -208,9 +208,35 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// ===== Auto-Save Before Logout or Page Reload =====
+// ===== Auto-Save Before Logout or Page Reload Using sendBeacon =====
 window.addEventListener("beforeunload", (e) => {
-  saveCurrentPOI();
+  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
+  const username = localStorage.getItem("username")?.trim().toLowerCase();
+
+  if (!poiDescription || !username) return;
+
+  const combinedEntities = [];
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(poiDescription, "text/html");
+  const highlightedElements = doc.querySelectorAll(".highlighted");
+
+  highlightedElements.forEach((element) => {
+    const link = element.querySelector("a");
+    combinedEntities.push({
+      entity: link ? link.textContent.trim() : element.textContent.trim(),
+      url: link ? link.href : null,
+    });
+  });
+
+  const payload = JSON.stringify({
+    username,
+    poi_index: userPOIs[currentIndex].poiIndex,
+    description: poiDescription,
+    highlightedData: combinedEntities,
+  });
+
+  navigator.sendBeacon(`${API_BASE}/update-poi`, new Blob([payload], { type: 'application/json' }));
+
   e.preventDefault();
   e.returnValue = '';
 });
