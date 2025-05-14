@@ -56,9 +56,9 @@ document.getElementById("cancel-link").addEventListener("click", () => {
   activeHighlight = null;
 });
 
-// ===== Save POI (Update current POI) =====
+// ===== Save POI =====
 document.getElementById("save-btn").addEventListener("click", () => {
-  saveCurrentPOI(true); // Manual save, show confirmation
+  saveCurrentPOI(true);
 });
 
 // ===== Next POI Button =====
@@ -76,16 +76,46 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
 function loadCurrentPOI() {
   const poi = userPOIs[currentIndex];
   document.getElementById("poi-description-area").innerHTML = poi.description;
+  parseAndRestoreHighlights(); // ✅ Restore highlights behavior
   updateProgressUI();
 }
 
-// ===== Extract title for POI from its description =====
+// ===== Restore Highlight Click Behavior After Loading HTML =====
+function parseAndRestoreHighlights() {
+  const area = document.getElementById("poi-description-area");
+  const highlightedElements = area.querySelectorAll(".highlighted");
+
+  highlightedElements.forEach(element => {
+    element.addEventListener("click", (event) => {
+      if (confirm("Do you want to remove this highlight and any link?")) {
+        const plainText = element.innerText;
+        const textNode = document.createTextNode(plainText);
+        element.parentNode.replaceChild(textNode, element);
+      }
+    });
+
+    const link = element.querySelector("a");
+    if (link) {
+      link.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (confirm("Do you want to remove the link and highlight?")) {
+          const span = link.closest(".highlighted");
+          const plainText = span.innerText;
+          const textNode = document.createTextNode(plainText);
+          span.parentNode.replaceChild(textNode, span);
+        }
+      });
+    }
+  });
+}
+
+// ===== Extract POI Title =====
 function extractTitle(description) {
   const match = description.split(" - ")[0].trim();
   return match.length > 50 ? match.slice(0, 50) + "..." : match;
 }
 
-// ===== Update POI Progress UI with Titles =====
+// ===== Update POI Progress Bar =====
 function updateProgressUI() {
   const progressBar = document.getElementById("poi-progress");
   if (!progressBar) return;
@@ -112,26 +142,7 @@ function updateProgressUI() {
   });
 }
 
-// ✨ Unhighlight Entity on Click
-document.getElementById("poi-description-area").addEventListener("click", (event) => {
-  const target = event.target;
-
-  if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
-    if (confirm("Do you want to remove this highlight and any link?")) {
-      const plainText = target.innerText;
-      const textNode = document.createTextNode(plainText);
-      target.parentNode.replaceChild(textNode, target);
-    }
-  } else if (target.tagName === "A" && target.closest(".highlighted")) {
-    if (confirm("Do you want to remove the link and highlight?")) {
-      const span = target.closest(".highlighted");
-      const plainText = span.innerText;
-      const textNode = document.createTextNode(plainText);
-      span.parentNode.replaceChild(textNode, span);
-    }
-  }
-});
-
+// ===== Save Current POI =====
 function saveCurrentPOI(showAlert = false) {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
   const username = localStorage.getItem("username")?.trim().toLowerCase();
