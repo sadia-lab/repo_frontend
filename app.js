@@ -76,20 +76,18 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
 function loadCurrentPOI() {
   const poi = userPOIs[currentIndex];
   const area = document.getElementById("poi-description-area");
-  area.innerHTML = poi.description;
 
-  // Clear old highlights
-  const highlightedElements = area.querySelectorAll(".highlighted");
-  highlightedElements.forEach(el => {
-    const textNode = document.createTextNode(el.innerText);
-    el.parentNode.replaceChild(textNode, el);
-  });
+  // Start with raw description text (no HTML)
+  area.textContent = poi.description || "";
 
   // Reapply highlights from highlightedData
   if (poi.highlightedData && poi.highlightedData.length > 0) {
     poi.highlightedData.forEach(({ entity, url }) => {
-      const regex = new RegExp(entity, 'g');
-      area.innerHTML = area.innerHTML.replace(regex, () => {
+      const html = area.innerHTML;
+      const escapedEntity = entity.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const regex = new RegExp(escapedEntity, 'g');
+
+      area.innerHTML = html.replace(regex, () => {
         const linkPart = url ? `<a href="${url}" target="_blank">${entity}</a>` : entity;
         return `<span class="highlighted" style="background-color:yellow;">${linkPart}</span>`;
       });
@@ -164,14 +162,15 @@ function updateProgressUI() {
 
 // ===== Save Current POI =====
 function saveCurrentPOI(showAlert = false) {
-  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
+  const area = document.getElementById("poi-description-area");
+  const poiDescription = area.innerText.trim(); // ✅ Raw plain text only
   const username = localStorage.getItem("username")?.trim().toLowerCase();
 
   if (!poiDescription || !username) return;
 
   const combinedEntities = [];
   const parser = new DOMParser();
-  const doc = parser.parseFromString(poiDescription, "text/html");
+  const doc = parser.parseFromString(area.innerHTML, "text/html");
   const highlightedElements = doc.querySelectorAll(".highlighted");
 
   highlightedElements.forEach((element) => {
@@ -190,21 +189,21 @@ function saveCurrentPOI(showAlert = false) {
     body: JSON.stringify({
       username,
       poi_index: userPOIs[currentIndex].poiIndex,
-      description: poiDescription,
-      highlightedData: combinedEntities,
+      description: poiDescription, // ✅ Only raw text saved
+      highlightedData: combinedEntities, // ✅ Structured highlight data
     }),
   })
-  .then((res) => res.json())
-  .then(() => {
-    if (showAlert) alert("✅ POI updated successfully!");
-    userPOIs[currentIndex].description = poiDescription;
-    userPOIs[currentIndex].highlightedData = combinedEntities;
-    updateProgressUI();
-  })
-  .catch((error) => {
-    console.error("❌ Save failed:", error);
-    if (showAlert) alert("❌ Failed to update POI.");
-  });
+    .then((res) => res.json())
+    .then(() => {
+      if (showAlert) alert("✅ POI updated successfully!");
+      userPOIs[currentIndex].description = poiDescription;
+      userPOIs[currentIndex].highlightedData = combinedEntities;
+      updateProgressUI();
+    })
+    .catch((error) => {
+      console.error("❌ Save failed:", error);
+      if (showAlert) alert("❌ Failed to update POI.");
+    });
 }
 
 // ===== Initial Load =====
@@ -239,14 +238,15 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // ===== Auto-Save Before Logout or Page Reload =====
 window.addEventListener("beforeunload", (e) => {
-  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
+  const area = document.getElementById("poi-description-area");
+  const poiDescription = area.innerText.trim(); // ✅ Raw plain text only
   const username = localStorage.getItem("username")?.trim().toLowerCase();
 
   if (!poiDescription || !username) return;
 
   const combinedEntities = [];
   const parser = new DOMParser();
-  const doc = parser.parseFromString(poiDescription, "text/html");
+  const doc = parser.parseFromString(area.innerHTML, "text/html");
   const highlightedElements = doc.querySelectorAll(".highlighted");
 
   highlightedElements.forEach((element) => {
