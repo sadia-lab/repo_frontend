@@ -237,21 +237,43 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 document.getElementById("unhighlight-btn").addEventListener("click", () => {
   const selection = window.getSelection();
-  if (selection.rangeCount > 0) {
-    const selectedNode = selection.getRangeAt(0).commonAncestorContainer;
+  if (!selection.rangeCount) {
+    alert("⚠️ Please select a highlighted entity to remove.");
+    return;
+  }
 
-    const target = selectedNode.nodeType === 3 ? selectedNode.parentNode : selectedNode;
+  const range = selection.getRangeAt(0);
+  let targetNode = range.commonAncestorContainer;
 
-    if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
-      const plainText = target.innerText;
+  // If text node, get its parent
+  if (targetNode.nodeType === Node.TEXT_NODE) {
+    targetNode = targetNode.parentNode;
+  }
+
+  // Handle if inside <a> tag first
+  if (targetNode.tagName === "A") {
+    const span = targetNode.closest(".highlighted");
+    if (span) {
+      const plainText = span.innerText;
       const textNode = document.createTextNode(plainText);
-      target.parentNode.replaceChild(textNode, target);
+      span.parentNode.replaceChild(textNode, span);
       selection.removeAllRanges();
-      saveCurrentPOI(); // Update after unhighlight
-    } else {
-      alert("⚠️ Please select a highlighted entity to remove.");
+      saveCurrentPOI();
+      return;
     }
   }
+
+  // Handle if inside highlighted <span> directly
+  if (targetNode.tagName === "SPAN" && targetNode.classList.contains("highlighted")) {
+    const plainText = targetNode.innerText;
+    const textNode = document.createTextNode(plainText);
+    targetNode.parentNode.replaceChild(textNode, targetNode);
+    selection.removeAllRanges();
+    saveCurrentPOI();
+    return;
+  }
+
+  alert("⚠️ Please select a highlighted entity or linked text to remove.");
 });
 
 
