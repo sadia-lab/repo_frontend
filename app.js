@@ -72,15 +72,15 @@ document.getElementById("next-poi-btn").addEventListener("click", () => {
   }
 });
 
-// ===== Load Current POI =====
+// ===== Load Current POI with Highlight Reconstruction =====
 function loadCurrentPOI() {
   const poi = userPOIs[currentIndex];
   const area = document.getElementById("poi-description-area");
+  const rawText = poi.description || "";
 
-  // Start with raw description text (no HTML)
-  area.textContent = poi.description || "";
+  area.textContent = rawText; // Set plain text first
 
-  // Reapply highlights from highlightedData
+  // Apply highlights based on stored highlightedData
   if (poi.highlightedData && poi.highlightedData.length > 0) {
     poi.highlightedData.forEach(({ entity, url }) => {
       const html = area.innerHTML;
@@ -98,7 +98,7 @@ function loadCurrentPOI() {
   updateProgressUI();
 }
 
-// ===== Restore Highlight Click Behavior =====
+// ===== Restore Highlight Interactions =====
 function parseAndRestoreHighlights() {
   const area = document.getElementById("poi-description-area");
   const highlightedElements = area.querySelectorAll(".highlighted");
@@ -163,7 +163,7 @@ function updateProgressUI() {
 // ===== Save Current POI =====
 function saveCurrentPOI(showAlert = false) {
   const area = document.getElementById("poi-description-area");
-  const poiDescription = area.innerText.trim(); // ✅ Raw plain text only
+  const poiDescription = area.innerText.trim(); // Raw plain text only
   const username = localStorage.getItem("username")?.trim().toLowerCase();
 
   if (!poiDescription || !username) return;
@@ -189,8 +189,8 @@ function saveCurrentPOI(showAlert = false) {
     body: JSON.stringify({
       username,
       poi_index: userPOIs[currentIndex].poiIndex,
-      description: poiDescription, // ✅ Only raw text saved
-      highlightedData: combinedEntities, // ✅ Structured highlight data
+      description: poiDescription,
+      highlightedData: combinedEntities,
     }),
   })
     .then((res) => res.json())
@@ -239,7 +239,7 @@ window.addEventListener("DOMContentLoaded", () => {
 // ===== Auto-Save Before Logout or Page Reload =====
 window.addEventListener("beforeunload", (e) => {
   const area = document.getElementById("poi-description-area");
-  const poiDescription = area.innerText.trim(); // ✅ Raw plain text only
+  const poiDescription = area.innerText.trim(); // Raw plain text only
   const username = localStorage.getItem("username")?.trim().toLowerCase();
 
   if (!poiDescription || !username) return;
