@@ -19,7 +19,6 @@ document.getElementById("highlight-btn").addEventListener("click", () => {
     selection.removeAllRanges();
     lastHighlighted = span;
     saveCurrentPOI();
-
   }
 });
 
@@ -59,52 +58,7 @@ document.getElementById("cancel-link").addEventListener("click", () => {
 
 // ===== Save POI (Update current POI) =====
 document.getElementById("save-btn").addEventListener("click", () => {
-  const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
-  const username = localStorage.getItem("username")?.trim().toLowerCase();
-
-  if (!poiDescription || !username) {
-    alert("⚠️ Username or description missing.");
-    return;
-  }
-
-  const combinedEntities = [];
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(poiDescription, "text/html");
-  const highlightedElements = doc.querySelectorAll(".highlighted");
-
-  highlightedElements.forEach((element) => {
-    const link = element.querySelector("a");
-    combinedEntities.push({
-      entity: link ? link.textContent.trim() : element.textContent.trim(),
-      url: link ? link.href : null,
-    });
-  });
-
-  if (combinedEntities.length > 0) {
-    highlightedPOIIndices.add(currentIndex);
-  }
-
-  fetch(`${API_BASE}/update-poi`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      username,
-      poi_index: userPOIs[currentIndex].poiIndex,
-      description: poiDescription,
-      highlightedData: combinedEntities,
-    }),
-  })
-    .then((res) => res.json())
-    .then(() => {
-      alert("✅ POI updated successfully!");
-      userPOIs[currentIndex].description = poiDescription;
-      userPOIs[currentIndex].highlightedData = combinedEntities;
-      updateProgressUI();
-    })
-    .catch((error) => {
-      console.error("Update error:", error);
-      alert("❌ Failed to update POI.");
-    });
+  saveCurrentPOI(true); // Explicit save shows confirmation
 });
 
 // ===== Next POI Button =====
@@ -157,13 +111,14 @@ function updateProgressUI() {
     progressBar.appendChild(step);
   });
 }
+
 // ✨ Unhighlight Entity on Click
 document.getElementById("poi-description-area").addEventListener("click", (event) => {
   const target = event.target;
 
   if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
     if (confirm("Do you want to remove this highlight and any link?")) {
-      let plainText = target.innerText;  // This will remove any inner <a> tags too
+      let plainText = target.innerText;
       const textNode = document.createTextNode(plainText);
       target.parentNode.replaceChild(textNode, target);
     }
@@ -177,7 +132,7 @@ document.getElementById("poi-description-area").addEventListener("click", (event
   }
 });
 
-function saveCurrentPOI() {
+function saveCurrentPOI(showAlert = false) {
   const poiDescription = document.getElementById("poi-description-area").innerHTML.trim();
   const username = localStorage.getItem("username")?.trim().toLowerCase();
 
@@ -212,13 +167,14 @@ function saveCurrentPOI() {
   })
   .then((res) => res.json())
   .then(() => {
-    console.log("✅ Auto-saved successfully.");
+    if (showAlert) alert("✅ POI updated successfully!");
     userPOIs[currentIndex].description = poiDescription;
     userPOIs[currentIndex].highlightedData = combinedEntities;
     updateProgressUI();
   })
   .catch((error) => {
-    console.error("❌ Auto-save failed:", error);
+    console.error("❌ Save failed:", error);
+    if (showAlert) alert("❌ Failed to update POI.");
   });
 }
 
@@ -250,4 +206,11 @@ window.addEventListener("DOMContentLoaded", () => {
       console.error("Fetch error:", err);
       alert("❌ Error fetching POIs");
     });
+});
+
+// ===== Auto-Save Before Logout or Page Reload =====
+window.addEventListener("beforeunload", (e) => {
+  saveCurrentPOI();
+  e.preventDefault();
+  e.returnValue = '';
 });
