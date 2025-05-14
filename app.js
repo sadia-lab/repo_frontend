@@ -235,6 +235,25 @@ window.addEventListener("DOMContentLoaded", () => {
       alert("❌ Error fetching POIs");
     });
 });
+document.getElementById("unhighlight-btn").addEventListener("click", () => {
+  const selection = window.getSelection();
+  if (selection.rangeCount > 0) {
+    const selectedNode = selection.getRangeAt(0).commonAncestorContainer;
+
+    const target = selectedNode.nodeType === 3 ? selectedNode.parentNode : selectedNode;
+
+    if (target.tagName === "SPAN" && target.classList.contains("highlighted")) {
+      const plainText = target.innerText;
+      const textNode = document.createTextNode(plainText);
+      target.parentNode.replaceChild(textNode, target);
+      selection.removeAllRanges();
+      saveCurrentPOI(); // Update after unhighlight
+    } else {
+      alert("⚠️ Please select a highlighted entity to remove.");
+    }
+  }
+});
+
 
 // ===== Auto-Save Before Logout or Page Reload =====
 window.addEventListener("beforeunload", (e) => {
